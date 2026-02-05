@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kestra Command Center v5.0 | Real Pipeline Data + BPMN 14.0 Issues</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; min-height: 100vh; }
+        .header { background: linear-gradient(to right, #1e293b, #0f172a); border-bottom: 1px solid #334155; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .logo-box { width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; }
+        .logo-text h1 { font-size: 1.1rem; font-weight: 700; }
+        .logo-text h1 span { background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-text p { font-size: 0.7rem; color: #94a3b8; }
+        .divider { height: 32px; width: 1px; background: #334155; }
+        .live-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #94a3b8; }
+        .live-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .view-tabs { display: flex; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 4px; }
+        .view-tab { padding: 8px 16px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border: none; background: transparent; color: #94a3b8; transition: all 0.2s; }
+        .view-tab:hover { color: #f8fafc; }
+        .view-tab.active { background: #3b82f6; color: white; }
+        .icon-btn { width: 40px; height: 40px; border-radius: 8px; border: none; background: transparent; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.2s; font-size: 1.1rem; }
+        .icon-btn:hover { background: #334155; color: #f8fafc; }
+        .badge { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; background: #ef4444; border-radius: 50%; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .user-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #fbbf24, #f97316); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+        .alert-banner { background: linear-gradient(to right, rgba(185, 28, 28, 0.8), rgba(153, 27, 27, 0.8)); border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 24px; display: flex; align-items: center; gap: 12px; }
+        .alert-banner strong { color: #fca5a5; }
+        .alert-banner span { color: #fecaca; }
+        .alert-banner a { margin-left: auto; color: #fca5a5; font-size: 0.85rem; text-decoration: underline; cursor: pointer; }
+        .main { padding: 24px; max-width: 1920px; margin: 0 auto; padding-bottom: 80px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
+        .main-grid { display: grid; grid-template-columns: 280px 1fr 320px; gap: 24px; }
+        .kpi-card { border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .kpi-card.blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .kpi-card.purple { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+        .kpi-card.emerald { background: linear-gradient(135deg, #059669, #047857); }
+        .kpi-card.cyan { background: linear-gradient(135deg, #0891b2, #0e7490); }
+        .kpi-card.amber { background: linear-gradient(135deg, #d97706, #b45309); }
+        .kpi-card.red { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .kpi-icon { width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .kpi-badge { font-size: 0.65rem; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+        .kpi-value { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+        .kpi-label { font-size: 0.85rem; opacity: 0.9; margin-bottom: 8px; }
+        .kpi-trend { font-size: 0.7rem; opacity: 0.85; }
+        .panel { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 16px; margin-bottom: 16px; }
+        .panel-header { padding: 16px 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+        .panel-title { font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .panel-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .panel-body { padding: 16px 20px; }
+        .phase-item { margin-bottom: 12px; cursor: pointer; }
+        .phase-item:hover .phase-bar { transform: translateX(4px); }
+        .phase-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px; }
+        .phase-bar { height: 36px; background: #334155; border-radius: 8px; overflow: hidden; transition: all 0.2s; }
+        .phase-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 0.75rem; font-weight: 600; }
+        .dept-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; padding: 6px; border-radius: 8px; transition: all 0.2s; }
+        .dept-item:hover { background: rgba(255,255,255,0.05); }
+        .dept-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dept-name { flex: 1; font-size: 0.75rem; color: #94a3b8; }
+        .dept-bar { width: 80px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+        .dept-fill { height: 100%; border-radius: 3px; }
+        .dept-count { font-size: 0.7rem; color: #94a3b8; width: 36px; text-align: right; }
+        .system-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .system-item { display: flex; align-items: center; gap: 8px; background: #334155; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.2s; }
+        .system-item:hover { background: #475569; }
+        .system-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .system-dot.online { background: #10b981; }
+        .system-dot.degraded { background: #f59e0b; }
+        .system-name { font-size: 0.75rem; }
+        .advisor-list { display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 280px); overflow-y: auto; }
+        .advisor-list::-webkit-scrollbar { width: 6px; }
+        .advisor-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .advisor-card { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.2s; }
+        .advisor-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .advisor-card.critical { border-left: 4px solid #ef4444; }
+        .advisor-card.high { border-left: 4px solid #f97316; }
+        .advisor-card.medium { border-left: 4px solid #f59e0b; }
+        .advisor-card.low { border-left: 4px solid #10b981; }
+        .advisor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .advisor-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .advisor-firm { font-size: 0.85rem; color: #94a3b8; }
+        .advisor-aum-value { font-size: 1.25rem; font-weight: 700; color: #60a5fa; text-align: right; }
+        .advisor-aum-label { font-size: 0.7rem; color: #94a3b8; text-align: right; }
+        .risk-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; color: white; }
+        .risk-badge.critical { background: #ef4444; }
+        .risk-badge.high { background: #f97316; }
+        .risk-badge.medium { background: #f59e0b; }
+        .risk-badge.low { background: #10b981; }
+        .advisor-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .meta-item { background: #334155; border-radius: 10px; padding: 10px 12px; }
+        .meta-label { font-size: 0.65rem; color: #94a3b8; margin-bottom: 4px; }
+        .meta-value { font-size: 0.85rem; font-weight: 500; }
+        .progress-bar { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+        .progress-fill { height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); border-radius: 4px; }
+        .alert-box { border-radius: 12px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px; }
+        .alert-box.critical { background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.3); }
+        .alert-box.high { background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .alert-box.medium { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .alert-box.low { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .alert-title { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; }
+        .alert-title.critical { color: #fca5a5; }
+        .alert-title.high { color: #fdba74; }
+        .alert-title.low { color: #6ee7b7; }
+        .alert-desc { font-size: 0.75rem; color: #94a3b8; }
+        .ai-panel { background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.2)); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .ai-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 16px; }
+        .ai-insight { border-radius: 12px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .ai-insight:hover { transform: translateX(4px); }
+        .ai-insight.danger { background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.3); }
+        .ai-insight.success { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .ai-insight.info { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .ai-insight-title { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; }
+        .ai-insight-title.danger { color: #fca5a5; }
+        .ai-insight-title.success { color: #6ee7b7; }
+        .ai-insight-title.info { color: #93c5fd; }
+        .ai-insight-text { font-size: 0.75rem; color: #94a3b8; line-height: 1.5; }
+        .ai-insight-text strong { color: #f8fafc; }
+        .upcoming-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #334155; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .upcoming-item:hover { background: rgba(255,255,255,0.1); }
+        .upcoming-name { font-size: 0.85rem; font-weight: 500; }
+        .upcoming-date { font-size: 0.75rem; color: #94a3b8; }
+        .upcoming-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .activity-item { display: flex; gap: 12px; margin-bottom: 12px; cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.2s; }
+        .activity-item:hover { background: rgba(255,255,255,0.05); }
+        .activity-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .activity-icon.success { background: rgba(16, 185, 129, 0.2); }
+        .activity-icon.error { background: rgba(220, 38, 38, 0.2); }
+        .activity-icon.info { background: rgba(59, 130, 246, 0.2); }
+        .activity-icon.warning { background: rgba(245, 158, 11, 0.2); }
+        .activity-title { font-size: 0.85rem; margin-bottom: 2px; }
+        .activity-meta { font-size: 0.7rem; color: #94a3b8; }
+        .actions-panel { background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 16px; padding: 20px; }
+        .actions-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 16px; }
+        .action-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.15); color: white; font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 8px; justify-content: center; }
+        .action-btn:hover { background: rgba(255,255,255,0.25); }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #334155; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
+        .footer-left { display: flex; align-items: center; gap: 16px; font-size: 0.75rem; color: #64748b; }
+        .footer-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
+        .footer-right { display: flex; align-items: center; gap: 8px; }
+        .footer-tag { padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 0.7rem; color: #94a3b8; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-start; z-index: 1000; padding: 40px 24px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1e293b; border: 1px solid #334155; border-radius: 20px; width: 100%; max-width: 1100px; margin: auto; }
+        .modal-header { padding: 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: flex-start; }
+        .modal-title h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 4px; }
+        .modal-title p { font-size: 0.85rem; color: #94a3b8; }
+        .modal-close { width: 36px; height: 36px; border-radius: 8px; border: none; background: #334155; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 1.1rem; }
+        .modal-close:hover { background: #ef4444; color: white; }
+        .modal-body { padding: 24px; max-height: calc(100vh - 200px); overflow-y: auto; }
+        .modal-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: #334155; border-radius: 10px; padding: 4px; }
+        .modal-tab { flex: 1; padding: 10px 16px; border: none; background: transparent; color: #94a3b8; font-size: 0.85rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .modal-tab:hover { color: #f8fafc; }
+        .modal-tab.active { background: #3b82f6; color: white; }
+        .modal-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .modal-stat { background: #334155; border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .modal-stat:hover { background: #475569; }
+        .modal-stat-value { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .modal-stat-label { font-size: 0.75rem; color: #94a3b8; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .detail-section { background: #334155; border-radius: 12px; padding: 20px; }
+        .detail-section-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #475569; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-size: 0.8rem; color: #94a3b8; }
+        .detail-value { font-size: 0.85rem; font-weight: 500; }
+        .journey-stats { display: flex; gap: 24px; margin-bottom: 24px; }
+        .journey-stat-value { font-size: 1.25rem; font-weight: 700; }
+        .journey-stat-label { font-size: 0.7rem; color: #64748b; }
+        .phase-timeline { display: flex; justify-content: space-between; margin-bottom: 32px; position: relative; padding: 0 20px; }
+        .phase-timeline::before { content: ''; position: absolute; top: 14px; left: 50px; right: 50px; height: 3px; background: #334155; }
+        .phase-step { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+        .phase-step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px; }
+        .phase-step-dot.complete { background: #10b981; color: white; }
+        .phase-step-dot.current { background: #3b82f6; color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3); }
+        .phase-step-dot.pending { background: #334155; color: #64748b; }
+        .phase-step-name { font-size: 0.7rem; color: #64748b; }
+        .phase-step-name.current { color: #3b82f6; font-weight: 600; }
+        .swimlane-container { display: flex; flex-direction: column; gap: 16px; }
+        .swimlane { background: #334155; border-radius: 12px; overflow: hidden; }
+        .swimlane-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: rgba(0,0,0,0.2); cursor: pointer; }
+        .swimlane-header:hover { background: rgba(0,0,0,0.3); }
+        .swimlane-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .swimlane-title { flex: 1; font-size: 0.9rem; font-weight: 600; }
+        .swimlane-progress { font-size: 0.75rem; color: #64748b; }
+        .swimlane-chevron { color: #64748b; transition: transform 0.2s; }
+        .swimlane.expanded .swimlane-chevron { transform: rotate(180deg); }
+        .swimlane-body { display: none; padding: 16px; }
+        .swimlane.expanded .swimlane-body { display: block; }
+        .swimlane-tasks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+        .swimlane-task { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #1e293b; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .swimlane-task:hover { background: #475569; }
+        .task-status { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; flex-shrink: 0; }
+        .task-status.complete { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .task-status.in-progress { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .task-status.pending { background: rgba(100, 116, 139, 0.2); color: #64748b; }
+        .task-status.blocked { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .task-status.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .task-name { font-size: 0.8rem; flex: 1; }
+        .task-due { font-size: 0.7rem; color: #64748b; }
+        .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .metric-card { background: #334155; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; }
+        .metric-card:hover { background: #475569; transform: translateY(-2px); }
+        .metric-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .metric-domain { font-size: 0.65rem; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+        .metric-domain.compliance { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .metric-domain.operations { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .metric-domain.tech { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .metric-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
+        .metric-value { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .metric-trend { font-size: 0.7rem; color: #94a3b8; }
+        .recommendation-card { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .recommendation-title { font-size: 0.85rem; font-weight: 600; color: #6ee7b7; margin-bottom: 8px; }
+        .recommendation-text { font-size: 0.8rem; color: #94a3b8; line-height: 1.5; }
+        .recommendation-impact { display: inline-block; margin-top: 8px; padding: 4px 10px; background: rgba(16, 185, 129, 0.2); border-radius: 20px; font-size: 0.7rem; color: #6ee7b7; font-weight: 500; }
+        .issue-card { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #ef4444; }
+        .issue-title { font-size: 0.85rem; font-weight: 600; color: #fca5a5; margin-bottom: 8px; }
+        .issue-text { font-size: 0.8rem; color: #94a3b8; line-height: 1.5; }
+        .issue-source { font-size: 0.7rem; color: #64748b; margin-top: 8px; font-style: italic; }
+        .issue-quote { background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px 12px; margin-top: 10px; border-radius: 0 8px 8px 0; font-style: italic; color: #fcd34d; font-size: 0.8rem; }
+        .issue-quote-attr { display: block; font-style: normal; font-weight: 600; color: #94a3b8; margin-top: 6px; font-size: 0.75rem; }
+        .channel-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 600; }
+        .channel-badge.direct { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .channel-badge.pws { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .channel-badge.bluespring { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+        .filter-select { background: #334155; border: 1px solid #475569; border-radius: 8px; padding: 8px 12px; color: #f8fafc; font-size: 0.8rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-box">K</div>
+            <div class="logo-text"><h1><span>KESTRA</span> Command Center</h1><p>Real Pipeline Data + BPMN 14.0 Issues v5.0</p></div>
+            <div class="divider"></div>
+            <div class="live-indicator"><div class="live-dot"></div><span>Live - Last sync: 12s ago</span></div>
+        </div>
+        <div class="header-right">
+            <div class="view-tabs" id="viewTabs"></div>
+            <button class="icon-btn" onclick="showNotifications()">B<span class="badge">12</span></button>
+            <div class="user-avatar">JG</div>
+        </div>
+    </header>
+
+    <div class="alert-banner">
+        <span>!</span>
+        <strong>5 CRITICAL ALERTS</strong>
+        <span>Wealth Empowerment ($11.3M): Bulk upload Mac incompatibility blocking $547M AUM transition</span>
+        <a onclick="showAllAlerts()">View All</a>
+    </div>
+
+    <main class="main">
+        <div class="kpi-row" id="kpiRow"></div>
+        <div class="main-grid" id="mainGrid"></div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-left">
+            <span style="display:flex;align-items:center;gap:8px;"><div class="footer-dot"></div>All systems operational</span>
+            <span>|</span><span>BPMN 14.0 | 32 Swimlanes | 35 Stakeholders | 100+ Issues</span>
+            <span>|</span><span style="color:#f59e0b;">3,421 Jira tickets in backlog (Isaiah Day 3)</span>
+        </div>
+        <div class="footer-right">
+            <span class="footer-tag" style="background:rgba(245,158,11,0.2);color:#f59e0b;">Salesforce: Degraded</span>
+            <span class="footer-tag">NFS OK</span>
+            <span class="footer-tag">ACATS OK</span>
+            <span class="footer-tag">WebCRD OK</span>
+            <span class="footer-tag">v5.0</span>
+        </div>
+    </footer>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <h2 id="modalTitle">Title</h2>
+                    <p id="modalSubtitle">Subtitle</p>
+                </div>
+                <button class="modal-close" onclick="closeModal()">X</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== REAL PIPELINE DATA FROM SPREADSHEET ==========
+        var advisorData = [
+            {
+                id: 1, name: "Wealth Empowerment", firm: "Wealth Empowerment Group", 
+                aum: 547789340, commission: 11346364, 
+                channel: "Kestra Direct", leadSource: "TPR", prevBD: "Commonwealth",
+                recruiter: "Shawn Thompson", obc: "Christian Callahan", entityId: "2017458",
+                regDate: "2025-02-01", loanAmortDate: "2025-10-14",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 10, progress: 45,
+                riskScore: 94, riskLevel: "critical",
+                alerts: [
+                    { severity: "critical", title: "Bulk upload failed - Mac incompatibility", desc: "Advisor using Mac. Bulk upload requires Windows + Excel desktop. BPMN: ncs-accounts", age: "5 days", owner: "Operations" },
+                    { severity: "critical", title: "Email host Scenario 2 - O365 domain lock", desc: "Previous BD (Commonwealth) controls O365. Domain release pending. BPMN: tech-email", age: "4 days", owner: "Tech Solutions" },
+                    { severity: "high", title: "5 carrier appointments pending", desc: "Lincoln, Pacific Life, Prudential, Nationwide, AIG. 1+ hour hold times. BPMN: pws-carrier", age: "3 days", owner: "Licensing" },
+                    { severity: "high", title: "Alternative investments 25% of book", desc: "Blackstone, Blue Owl positions require 4+ week timeline vs 3-5 days ACAT. BPMN: trading-alts", age: "2 days", owner: "Trading" }
+                ],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 3, bulkUploadErrors: 47, nigoRate: 0, carrierAppts: {complete: 3, total: 8}, u4Status: "Pre-U4 Filed", finraStatus: "Not Started", techReadiness: 25, docsComplete: 62 },
+                swimlanes: {
+                    "Business Development": { color: "#8B5CF6", icon: "B", tasks: [
+                        { name: "Initial discovery", status: "complete", due: "Nov 15" },
+                        { name: "LOI signed", status: "complete", due: "Dec 5" },
+                        { name: "Contracting complete", status: "complete", due: "Dec 20" }
+                    ]},
+                    "Licensing & Registration": { color: "#06B6D4", icon: "L", tasks: [
+                        { name: "Pre-hire background check", status: "complete", due: "Dec 28" },
+                        { name: "U4 preparation", status: "in-progress", due: "Jan 25" },
+                        { name: "State registrations (4)", status: "pending", due: "Feb 5" },
+                        { name: "Carrier appointments (8)", status: "warning", due: "Jan 28" }
+                    ]},
+                    "Tech Solutions": { color: "#EF4444", icon: "T", tasks: [
+                        { name: "Workstation setup", status: "pending", due: "Jan 28" },
+                        { name: "Email domain config (Scenario 2)", status: "blocked", due: "Overdue" },
+                        { name: "Smarsh archiving", status: "blocked", due: "Blocked" },
+                        { name: "CRM access", status: "pending", due: "Jan 30" }
+                    ]},
+                    "Operations/Onboarding": { color: "#10B981", icon: "O", tasks: [
+                        { name: "Client data collection", status: "complete", due: "Jan 10" },
+                        { name: "Bulk upload attempt 1 (Mac fail)", status: "blocked", due: "Jan 15" },
+                        { name: "Bulk upload attempt 2", status: "blocked", due: "Jan 18" },
+                        { name: "Bulk upload attempt 3", status: "blocked", due: "Jan 20" }
+                    ]},
+                    "Trading/Cashiering": { color: "#F59E0B", icon: "$", tasks: [
+                        { name: "Alternative investments review", status: "warning", due: "Jan 25" },
+                        { name: "Blackstone transfer prep", status: "pending", due: "Feb 10" }
+                    ]}
+                },
+                bpmnIssues: [
+                    { title: "Mac/Windows Bulk Upload Incompatibility", desc: "Bulk upload templates require Windows with Excel desktop. Mac users cannot use bulk upload at all - blocking entire transition.", source: "Onboarding_Bulk Upload.pdf", quote: "The bulk upload process is like trying to use a 1995 fax machine", attr: "Victoria, New Client Services" },
+                    { title: "Email Host Complexity - Scenario 2", desc: "Previous BD (Commonwealth) controls email host through Office 365. Most complex scenario requiring domain alias or new domain creation.", source: "Tech Solutions_Onboarding.pdf - Scenario 2", quote: null },
+                    { title: "Alternative Investments #1 Pain Point", desc: "AI transfers take 4+ weeks vs 3-5 days for standard ACAT. Blackstone, Blue Owl positions cannot use ACAT.", source: "Sam Arnott Interview (Day 2)", quote: "Alternative investments are the number one pain point in transfers", attr: "Sam Arnott, Trading & Cashiering" }
+                ],
+                recommendations: [
+                    { title: "Create Mac-Compatible Upload", text: "This is blocking $547M AUM. Create cloud-based or Mac-compatible bulk upload alternative immediately.", impact: "Unblocks 47 errors, $11.3M commission" },
+                    { title: "Initiate Domain Release", text: "Contact Commonwealth to release O365 domain. Scenario 2 can take 2+ weeks.", impact: "Prevents reg day email failures" },
+                    { title: "Set AI Timeline Expectations", text: "Proactively communicate 4+ week timeline for Blackstone/Blue Owl to advisor and clients.", impact: "Reduces client frustration" }
+                ]
+            },
+            {
+                id: 2, name: "Dynasty Advisory", firm: "Dynasty Advisory Group",
+                aum: 326911002, commission: 8542736,
+                channel: "Kestra Direct", leadSource: "Other", prevBD: "B. Riley",
+                recruiter: "Shawn Thompson", obc: "Josh Gutierrez", entityId: "2262849",
+                regDate: "2025-01-26", loanAmortDate: "2025-07-31",
+                phase: "Registration Day", phaseNum: 4, daysToReg: 4, progress: 72,
+                riskScore: 68, riskLevel: "high",
+                alerts: [
+                    { severity: "high", title: "Tech readiness only 70%", desc: "Smarsh configuration incomplete. BPMN: tech-email", age: "2 days", owner: "Tech Solutions" },
+                    { severity: "medium", title: "Training retention concern", desc: "10% retention rate per Brooke/CJ. BPMN: ed-plan", age: "3 days", owner: "Training" }
+                ],
+                kpis: { bulkUploadSuccess: 1, bulkUploadAttempts: 2, bulkUploadErrors: 8, nigoRate: 12, carrierAppts: {complete: 6, total: 7}, u4Status: "Filed", finraStatus: "Processing", techReadiness: 70, docsComplete: 88 },
+                swimlanes: {
+                    "Licensing & Registration": { color: "#06B6D4", icon: "L", tasks: [
+                        { name: "U4 filed", status: "complete", due: "Jan 10" },
+                        { name: "FINRA processing", status: "in-progress", due: "Jan 26" },
+                        { name: "State regs (3)", status: "in-progress", due: "Jan 26" }
+                    ]},
+                    "Tech Solutions": { color: "#EF4444", icon: "T", tasks: [
+                        { name: "Workstation", status: "complete", due: "Jan 15" },
+                        { name: "Email/Smarsh", status: "warning", due: "Jan 24" },
+                        { name: "CRM access", status: "complete", due: "Jan 18" }
+                    ]}
+                },
+                bpmnIssues: [
+                    { title: "10% Training Retention", desc: "Only 10% of training information is retained. Information overload during stressful transition.", source: "Brooke & CJ Interview (Day 1)", quote: "We estimate maybe 10% of what we teach actually sticks", attr: "Brooke & CJ, Advisor Training" }
+                ],
+                recommendations: [
+                    { title: "Verify Smarsh Before Reg", text: "Archiving must be confirmed before L&R grants full access. Verify today.", impact: "Prevents trading delays" }
+                ]
+            },
+            {
+                id: 3, name: "KDI Wealth Management", firm: "KDI Wealth Management",
+                aum: 547789340, commission: 7031834,
+                channel: "Bluespring", leadSource: "External Referral", prevBD: "Commonwealth",
+                recruiter: "Clay Johnson", obc: "Josh Gutierrez", entityId: "N/A",
+                regDate: "2025-03-01", loanAmortDate: "2024-05-01",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 38, progress: 42,
+                riskScore: 32, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 2, total: 6}, u4Status: "Pre-U4", finraStatus: "Not Started", techReadiness: 35, docsComplete: 58 },
+                swimlanes: {
+                    "Business Development": { color: "#8B5CF6", icon: "B", tasks: [
+                        { name: "External referral received", status: "complete", due: "Nov 1" },
+                        { name: "Discovery complete", status: "complete", due: "Dec 15" }
+                    ]}
+                },
+                bpmnIssues: [],
+                recommendations: [
+                    { title: "Pre-validate Bulk Upload Data", text: "Based on Mac/Windows issues with other advisors, confirm Windows setup before bulk upload.", impact: "Avoids registration delays" }
+                ]
+            },
+            {
+                id: 4, name: "PacNorth Retirement", firm: "PacNorth Retirement Solutions",
+                aum: 385863000, commission: 5704756,
+                channel: "Kestra Direct", leadSource: "TPR", prevBD: "LPL Financial",
+                recruiter: "Ashley Green", obc: "Samara Sweet", entityId: "2259983",
+                regDate: "2025-01-15", loanAmortDate: "2025-07-31",
+                phase: "Post-Reg/Transfer", phaseNum: 5, daysToReg: -7, progress: 78,
+                riskScore: 42, riskLevel: "medium",
+                alerts: [
+                    { severity: "medium", title: "ACAT batch 72% complete", desc: "198 accounts still pending transfer", age: "5 days", owner: "Operations" },
+                    { severity: "medium", title: "Alternative investments delayed", desc: "Blackstone positions require 4+ week timeline. BPMN: trading-alts", age: "7 days", owner: "Trading" }
+                ],
+                kpis: { bulkUploadSuccess: 1, bulkUploadAttempts: 1, nigoRate: 8, carrierAppts: {complete: 6, total: 6}, u4Status: "Complete", finraStatus: "Approved", techReadiness: 100, docsComplete: 100, acatsComplete: 536, acatsTotal: 734, day7Nps: 72 },
+                swimlanes: {
+                    "Operations/Transfers": { color: "#10B981", icon: "O", tasks: [
+                        { name: "ACAT initiation", status: "complete", due: "Jan 16" },
+                        { name: "Standard transfers (536)", status: "complete", due: "Jan 20" },
+                        { name: "Complex transfers (198)", status: "in-progress", due: "Jan 28" }
+                    ]}
+                },
+                bpmnIssues: [
+                    { title: "No ACAT Eligibility Database", desc: "No centralized database of which AIs are ACAT eligible. Must contact each sponsor individually.", source: "AI Guide - Option 1 Note", quote: null }
+                ],
+                recommendations: []
+            },
+            {
+                id: 5, name: "The Benjamin Group", firm: "The Benjamin Group",
+                aum: 385863000, commission: 3839340,
+                channel: "Kestra Direct", leadSource: "TPR", prevBD: "Commonwealth",
+                recruiter: "Bill Tadio", obc: "Samara Sweet", entityId: "2276249",
+                regDate: "2025-02-04", loanAmortDate: "2025-08-04",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 13, progress: 55,
+                riskScore: 28, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 1, total: 5}, u4Status: "Pre-U4 Filed", finraStatus: "Not Started", techReadiness: 40, docsComplete: 72 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 6, name: "The Varano Group", firm: "The Varano Group",
+                aum: 267314505, commission: 2931985,
+                channel: "Kestra Direct", leadSource: "TPR", prevBD: "Osaic",
+                recruiter: "James Collins", obc: "Christian Callahan", entityId: "2017152",
+                regDate: "2025-01-28", loanAmortDate: "2025-01-28",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 6, progress: 62,
+                riskScore: 45, riskLevel: "medium",
+                alerts: [
+                    { severity: "medium", title: "Carrier appointments 3/7", desc: "4 carriers pending with 1+ hour hold times. BPMN: pws-carrier", age: "4 days", owner: "Licensing" }
+                ],
+                kpis: { bulkUploadSuccess: 1, bulkUploadAttempts: 1, nigoRate: 15, carrierAppts: {complete: 3, total: 7}, u4Status: "Filed", finraStatus: "Processing", techReadiness: 75, docsComplete: 85 },
+                swimlanes: {},
+                bpmnIssues: [
+                    { title: "1+ Hour Carrier Hold Times", desc: "Carriers place callers on hold for 1+ hours when following up on appointment status.", source: "Delaney Interview (Day 3)", quote: "I spend hours on hold with carriers every week", attr: "Delaney Kenner, PWS" }
+                ],
+                recommendations: []
+            },
+            {
+                id: 7, name: "PWS - Campus Financial", firm: "Campus Financial Partners",
+                aum: 335580530, commission: 2335773,
+                channel: "Kestra PWS", leadSource: "TPR", prevBD: "Merrill Lynch",
+                recruiter: "James Collins", obc: "Delaney Marie", entityId: "2077338",
+                regDate: "2025-04-01", loanAmortDate: "2024-12-12",
+                phase: "Qualification", phaseNum: 2, daysToReg: 69, progress: 35,
+                riskScore: 55, riskLevel: "medium",
+                alerts: [
+                    { severity: "medium", title: "PWS single OBC capacity", desc: "Delaney managing 5-6 PWS transitions alone. BPMN: pws-carrier", age: "Ongoing", owner: "Onboarding" }
+                ],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 0, total: 8}, u4Status: "Not Started", finraStatus: "Not Started", techReadiness: 0, docsComplete: 25 },
+                swimlanes: {},
+                bpmnIssues: [
+                    { title: "Single PWS OBC Managing 5-6 Transitions", desc: "Delaney is the sole person managing PWS transitions. No backup or support.", source: "Delaney Interview (Day 3)", quote: "I spend hours on hold with carriers every week", attr: "Delaney Kenner, PWS" }
+                ],
+                recommendations: [
+                    { title: "Hire Additional PWS OBC", text: "Single point of failure risk. Delaney managing 5-6 transitions alone is unsustainable.", impact: "Reduces capacity risk" }
+                ]
+            },
+            {
+                id: 8, name: "KPWS - Kingdom Wealth", firm: "Kingdom Wealth Strategies",
+                aum: 326911002, commission: 1609386,
+                channel: "Kestra PWS", leadSource: "Cold Call", prevBD: "Wells Fargo",
+                recruiter: "Clay Johnson", obc: "Delaney Marie", entityId: "2230005",
+                regDate: "2025-01-25", loanAmortDate: "2025-06-05",
+                phase: "Registration Day", phaseNum: 4, daysToReg: 3, progress: 70,
+                riskScore: 52, riskLevel: "medium",
+                alerts: [
+                    { severity: "medium", title: "Variable annuity 24-hour limit", desc: "VA applications can only be held 24 hours. Tight compliance window. BPMN: pws-carrier", age: "1 day", owner: "Compliance" }
+                ],
+                kpis: { bulkUploadSuccess: 1, bulkUploadAttempts: 1, nigoRate: 10, carrierAppts: {complete: 6, total: 8}, u4Status: "Filed", finraStatus: "Processing", techReadiness: 85, docsComplete: 90 },
+                swimlanes: {},
+                bpmnIssues: [
+                    { title: "Variable Annuity 24-Hour Limit", desc: "VA applications can only be held by Kestra for 24 hours. Tight window creates pressure and compliance risk.", source: "Insurance Carrier Appointment.pdf", quote: null }
+                ],
+                recommendations: []
+            },
+            {
+                id: 9, name: "KPWS - Highland", firm: "Highland Financial Advisors",
+                aum: 248035141, commission: 1441719,
+                channel: "Kestra PWS", leadSource: "TPR", prevBD: "Raymond James",
+                recruiter: "Brian Campos", obc: "Delaney Marie", entityId: "2124684",
+                regDate: "2025-05-01", loanAmortDate: "2025-05-22",
+                phase: "Qualification", phaseNum: 2, daysToReg: 99, progress: 28,
+                riskScore: 25, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 0, total: 6}, u4Status: "Not Started", finraStatus: "Not Started", techReadiness: 0, docsComplete: 20 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 10, name: "PWS - Amy Du", firm: "Amy Du Financial",
+                aum: 225799437, commission: 1423853,
+                channel: "Kestra PWS", leadSource: "Bolt-on", prevBD: "Kestra Advisor",
+                recruiter: "Bill Tadio", obc: "Delaney Marie", entityId: "613247",
+                regDate: "2025-03-11", loanAmortDate: "2025-07-01",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 48, progress: 38,
+                riskScore: 22, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 1, total: 4}, u4Status: "Pre-U4", finraStatus: "Not Started", techReadiness: 20, docsComplete: 45 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 11, name: "Udall Wealth Management", firm: "Udall Wealth Management",
+                aum: 125235633, commission: 1326568,
+                channel: "Kestra Direct", leadSource: "TPR", prevBD: "Commonwealth",
+                recruiter: "Clay Johnson", obc: "Christopher G", entityId: "2277634",
+                regDate: "2025-02-08", loanAmortDate: "2025-08-07",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 17, progress: 48,
+                riskScore: 30, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 2, total: 5}, u4Status: "Pre-U4", finraStatus: "Not Started", techReadiness: 30, docsComplete: 55 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 12, name: "KPWS - Turas Wealth", firm: "Turas Wealth Management",
+                aum: 179339387, commission: 1100000,
+                channel: "Kestra PWS", leadSource: "TPR", prevBD: "UBS Financial",
+                recruiter: "Brian Campos", obc: "Delaney Marie", entityId: "2200075",
+                regDate: "2025-03-27", loanAmortDate: "2025-03-27",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 64, progress: 32,
+                riskScore: 35, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 0, total: 6}, u4Status: "Pre-U4", finraStatus: "Not Started", techReadiness: 15, docsComplete: 35 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 13, name: "Fesser Financial", firm: "Fesser Financial Group",
+                aum: 70952519, commission: 640095,
+                channel: "Kestra Direct", leadSource: "COI", prevBD: "Cambridge Inv",
+                recruiter: "Clay Johnson", obc: "Christian Callahan", entityId: "208232",
+                regDate: "2025-03-25", loanAmortDate: "2025-03-25",
+                phase: "Pre-Registration", phaseNum: 3, daysToReg: 62, progress: 30,
+                riskScore: 28, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 1, total: 4}, u4Status: "Pre-U4", finraStatus: "Not Started", techReadiness: 20, docsComplete: 40 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 14, name: "Marrero Wealth", firm: "Marrero Wealth Management",
+                aum: 52004373, commission: 631376,
+                channel: "Kestra Direct", leadSource: "Kestra Advisor", prevBD: "Concourse",
+                recruiter: "Shawn Thompson", obc: "Judith Denise", entityId: "2050492",
+                regDate: "2025-05-01", loanAmortDate: "2025-01-27",
+                phase: "Qualification", phaseNum: 2, daysToReg: 99, progress: 22,
+                riskScore: 20, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 0, total: 3}, u4Status: "Not Started", finraStatus: "Not Started", techReadiness: 0, docsComplete: 15 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            },
+            {
+                id: 15, name: "Chrysalis Capital", firm: "Chrysalis Capital Partners",
+                aum: 39000000, commission: 394390,
+                channel: "Kestra Direct", leadSource: "TPR (1099 DIR)", prevBD: "Osaic Wealth",
+                recruiter: "Bill Tadio", obc: "Samara Sweet", entityId: "2234393",
+                regDate: "2025-06-03", loanAmortDate: "2025-10-01",
+                phase: "Lead Acquisition", phaseNum: 1, daysToReg: 132, progress: 15,
+                riskScore: 18, riskLevel: "low",
+                alerts: [],
+                kpis: { bulkUploadSuccess: 0, bulkUploadAttempts: 0, nigoRate: 0, carrierAppts: {complete: 0, total: 0}, u4Status: "Not Started", finraStatus: "Not Started", techReadiness: 0, docsComplete: 10 },
+                swimlanes: {},
+                bpmnIssues: [],
+                recommendations: []
+            }
+        ];
+
+        var phaseData = [
+            { name: "Lead Acquisition", short: "Lead", count: 1, aum: 39000000, conversion: 82, avgDays: 14, color: "#8B5CF6" },
+            { name: "Qualification", short: "Qual", count: 3, aum: 635620044, conversion: 75, avgDays: 21, color: "#3B82F6" },
+            { name: "Pre-Registration", short: "Pre-Reg", count: 7, aum: 1692133811, conversion: 88, avgDays: 18, color: "#06B6D4" },
+            { name: "Registration Day", short: "Reg Day", count: 2, aum: 653822004, conversion: 95, avgDays: 1, color: "#F59E0B" },
+            { name: "Post-Reg/Transfer", short: "Transfer", count: 1, aum: 385863000, conversion: 90, avgDays: 45, color: "#10B981" },
+            { name: "Practice Dev", short: "Practice", count: 0, aum: 0, conversion: 94, avgDays: 60, color: "#EC4899" },
+            { name: "Graduation", short: "Grad", count: 0, aum: 0, conversion: 100, avgDays: 90, color: "#16A34A" }
+        ];
+
+        var departments = [
+            { name: "Onboarding", tasks: 42, complete: 24, color: "#16A34A", lead: "Gretchen Gardinier", critical: 5, swimlanes: 7 },
+            { name: "New Client Svcs", tasks: 38, complete: 22, color: "#EC4899", lead: "Victoria Guzman", critical: 4, swimlanes: 3 },
+            { name: "Trading/Cashiering", tasks: 24, complete: 14, color: "#F59E0B", lead: "Sam Arnott", critical: 3, swimlanes: 2 },
+            { name: "Licensing & Reg", tasks: 28, complete: 18, color: "#06B6D4", lead: "Maria Santos", critical: 2, swimlanes: 3 },
+            { name: "Tech Solutions", tasks: 22, complete: 8, color: "#EF4444", lead: "Isaiah Gonzales", critical: 6, swimlanes: 2 },
+            { name: "Business Dev", tasks: 16, complete: 14, color: "#3B82F6", lead: "BD Team", critical: 1, swimlanes: 3 },
+            { name: "Wealth Mgmt", tasks: 20, complete: 12, color: "#06B6D4", lead: "Ryan Cooper", critical: 2, swimlanes: 3 },
+            { name: "Marketing", tasks: 12, complete: 10, color: "#8B5CF6", lead: "Ben GiaQuinta", critical: 1, swimlanes: 2 },
+            { name: "Compliance", tasks: 18, complete: 12, color: "#6366F1", lead: "Mark (Sr Supervisor)", critical: 2, swimlanes: 2 },
+            { name: "Business Consulting", tasks: 14, complete: 8, color: "#F97316", lead: "Preston Dillon", critical: 1, swimlanes: 2 },
+            { name: "Data/Reporting", tasks: 16, complete: 6, color: "#64748B", lead: "Scott Anderson", critical: 3, swimlanes: 3 }
+        ];
+
+        var systems = [
+            { name: "Salesforce", status: "degraded", note: "Must be scrapped per Lindsay" },
+            { name: "NFS/Wealthscape", status: "online" },
+            { name: "Advisor Complete", status: "online" },
+            { name: "FINRA WebCRD", status: "online" },
+            { name: "Databricks MDM", status: "online", note: "Year 1 limited scope" },
+            { name: "Jira Workflows", status: "degraded" },
+            { name: "DST Vision", status: "online" },
+            { name: "Investnet", status: "online" },
+            { name: "DocuSign", status: "online" },
+            { name: "Smarsh/Mimecast", status: "degraded", note: "Config complexity" }
+        ];
+
+        var activities = [
+            { type: "error", icon: "!", title: "CRITICAL: Bulk upload failed (Mac)", desc: "Wealth Empowerment - 3rd attempt", time: "5 min ago" },
+            { type: "error", icon: "!", title: "Email domain blocked", desc: "Wealth Empowerment - Commonwealth O365", time: "15 min ago" },
+            { type: "warning", icon: "!", title: "Carrier hold time 1.5 hrs", desc: "Varano Group - Lincoln Financial", time: "28 min ago" },
+            { type: "success", icon: "+", title: "ACAT batch completed", desc: "PacNorth - 89 accounts settled", time: "45 min ago" },
+            { type: "info", icon: "i", title: "U4 filed with FINRA", desc: "Dynasty Advisory Group", time: "1 hr ago" },
+            { type: "warning", icon: "!", title: "10% training retention", desc: "Per Ryan Day 6 - systemic issue", time: "2 hrs ago" },
+            { type: "error", icon: "!", title: "Salesforce data override", desc: "Multiple jobs writing same tables", time: "3 hrs ago" },
+            { type: "warning", icon: "!", title: "75% need KIM help", desc: "Per Brandon Day 3 - roadblocks", time: "4 hrs ago" },
+            { type: "info", icon: "i", title: "EOB job completed", desc: "20-min cycle 8AM-6PM", time: "5 hrs ago" }
+        ];
+
+        // BPMN v14.0 Interview Data - Advisor Satisfaction Trajectory
+        var advisorInterviews = {
+            day1: { rating: "7.5-8/10", recommend: true, advisors: ["Brenn Watts", "Advisor 2"], finding: "Insurance/annuity integration primary pain point" },
+            day2: { rating: "7/10", recommend: false, advisors: ["Sam Arnott team"], finding: "Alternative investments #1 operational pain" },
+            day3: { rating: "10/10 onboarding, 3.5/10 post-grad", recommend: "mixed", advisors: ["Nola", "Brandon"], finding: "Post-graduation support collapsed" },
+            day4: { rating: "1/10", recommend: false, advisors: ["Chad Roland"], finding: "CRISIS - Would never recommend Kestra", crisis: true }
+        };
+
+        // Cumulative BPMN v14.0 Trends
+        var bpmnTrends = {
+            satisfactionTrajectory: "In Crisis",
+            bulkUpload: "9/9 Issues",
+            onsiteSpecialist: "Binary (0-10 based on coordinator)",
+            techRanking: "Last Place",
+            postGradSupport: "Collapsed",
+            advisorCommitment: "Salvageable"
+        };
+
+        // Calculate totals from real data
+        var totalAum = advisorData.reduce(function(sum, a) { return sum + a.aum; }, 0);
+        var totalCommission = advisorData.reduce(function(sum, a) { return sum + a.commission; }, 0);
+        var atRiskCount = advisorData.filter(function(a) { return a.riskLevel === 'critical' || a.riskLevel === 'high'; }).length;
+
+        var platformKpis = {
+            totalAum: totalAum,
+            totalCommission: totalCommission,
+            activeAdvisors: advisorData.length,
+            smoothOnboarding: 0,
+            avgCycleTime: 38,
+            bulkUploadRate: 2,
+            atRisk: atRiskCount
+        };
+
+        // ========== VIEWS ==========
+        var views = ['Executive', 'Pipeline', 'Operations', 'BPMN Issues'];
+        var currentView = 'Executive';
+
+        function formatCurrency(v) {
+            return v >= 1e9 ? '$' + (v/1e9).toFixed(2) + 'B' : v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : '$' + v.toLocaleString();
+        }
+
+        function initViewTabs() {
+            document.getElementById('viewTabs').innerHTML = views.map(function(v) {
+                return '<button class="view-tab ' + (v === currentView ? 'active' : '') + '" onclick="switchView(\'' + v + '\')">' + v + '</button>';
+            }).join('');
+        }
+
+        function switchView(view) {
+            currentView = view;
+            initViewTabs();
+            document.getElementById('kpiRow').style.display = view === 'Executive' ? 'grid' : 'none';
+            render();
+        }
+
+        function render() {
+            if (currentView === 'Executive') renderExecutiveView();
+            else if (currentView === 'Pipeline') renderPipelineView();
+            else if (currentView === 'Operations') renderOperationsView();
+            else if (currentView === 'BPMN Issues') renderBpmnView();
+        }
+
+        function renderKpiRow() {
+            var kpis = [
+                { id: 'pipeline', color: 'blue', icon: '$', badge: 'Pipeline', value: formatCurrency(platformKpis.totalAum), label: 'Total AUM Transitioning', trend: platformKpis.activeAdvisors + ' active advisors' },
+                { id: 'commission', color: 'purple', icon: '%', badge: 'Revenue', value: formatCurrency(platformKpis.totalCommission), label: 'Total Commission', trend: 'From real pipeline data' },
+                { id: 'onboarding', color: 'red', icon: '!', badge: 'CRITICAL', value: platformKpis.smoothOnboarding + '%', label: 'Smooth Onboarding Rate', trend: 'Per Nola: "Not one"' },
+                { id: 'cycle', color: 'cyan', icon: 'T', badge: 'Avg', value: platformKpis.avgCycleTime + 'd', label: 'Lead to Registration', trend: 'Target: 30 days' },
+                { id: 'bulk', color: 'amber', icon: 'U', badge: 'CRITICAL', value: platformKpis.bulkUploadRate + '%', label: 'Bulk Upload First-Pass', trend: 'Mac/Windows blocking' },
+                { id: 'risk', color: 'red', icon: '!', badge: 'Alert', value: platformKpis.atRisk, label: 'At-Risk Transitions', trend: '1 Critical | 1 High' }
+            ];
+
+            document.getElementById('kpiRow').innerHTML = kpis.map(function(k) {
+                return '<div class="kpi-card ' + k.color + '" onclick="openKpiDrill(\'' + k.id + '\')">' +
+                    '<div class="kpi-header"><div class="kpi-icon">' + k.icon + '</div><span class="kpi-badge">' + k.badge + '</span></div>' +
+                    '<div class="kpi-value">' + k.value + '</div>' +
+                    '<div class="kpi-label">' + k.label + '</div>' +
+                    '<div class="kpi-trend">' + k.trend + '</div></div>';
+            }).join('');
+        }
+
+        function renderExecutiveView() {
+            renderKpiRow();
+            document.getElementById('mainGrid').innerHTML = '' +
+                '<div class="left-col">' +
+                    '<div class="panel"><div class="panel-header"><span class="panel-title">Pipeline by Phase</span><span class="panel-badge">' + formatCurrency(platformKpis.totalAum) + '</span></div><div class="panel-body" id="pipelineContainer"></div></div>' +
+                    '<div class="panel"><div class="panel-header"><span class="panel-title">Department Workload</span><span style="font-size:0.7rem;color:#ef4444;">' + departments.reduce(function(a,d){return a+d.critical;},0) + ' critical</span></div><div class="panel-body" id="departmentContainer"></div></div>' +
+                    '<div class="panel"><div class="panel-header"><span class="panel-title">Systems</span><span class="panel-badge">' + systems.filter(function(s){return s.status==="online";}).length + '/' + systems.length + '</span></div><div class="panel-body"><div class="system-grid" id="systemContainer"></div></div></div>' +
+                '</div>' +
+                '<div class="center-col">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><span class="panel-title">Active Transitions (' + advisorData.length + ' from Pipeline Sheet)</span>' +
+                    '<div><select class="filter-select" id="riskFilter" onchange="filterAdvisors()"><option value="all">All Risk</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div>' +
+                    '<div class="advisor-list" id="advisorContainer"></div>' +
+                '</div>' +
+                '<div class="right-col">' +
+                    '<div class="ai-panel"><div class="ai-title">All Insights (BPMN 14.0)</div>' +
+                        '<div style="color:#94a3b8;font-size:0.8rem;text-align:center;padding:16px;">Click into Active Transitions to view advisor-specific BPMN issues</div>' +
+                    '</div>' +
+                    '<div class="panel"><div class="panel-header"><span class="panel-title">Upcoming Registrations</span></div><div class="panel-body" id="upcomingContainer"></div></div>' +
+                    '<div class="panel"><div class="panel-header"><span class="panel-title">Recent Activity</span></div><div class="panel-body" id="activityContainer"></div></div>' +
+                    '<div class="actions-panel"><div class="actions-title">Quick Actions</div>' +
+                        '<button class="action-btn" onclick="switchView(\'BPMN Issues\')">View All BPMN Issues</button>' +
+                        '<button class="action-btn" onclick="generateReport()">Generate Board Report</button>' +
+                    '</div>' +
+                '</div>';
+            renderPipeline();
+            renderDepartments();
+            renderSystems();
+            renderAdvisors();
+            renderUpcoming();
+            renderActivity();
+        }
+
+        function renderPipeline() {
+            document.getElementById('pipelineContainer').innerHTML = phaseData.map(function(p) {
+                return '<div class="phase-item" onclick="openPhaseDrill(\'' + p.name + '\')">' +
+                    '<div class="phase-label"><span>' + p.name + '</span><span>' + p.count + '</span></div>' +
+                    '<div class="phase-bar"><div class="phase-fill" style="width:' + Math.max(p.count*12,15) + '%;background:' + p.color + ';"><span>' + p.short + '</span><span>' + formatCurrency(p.aum) + '</span></div></div></div>';
+            }).join('');
+        }
+
+        function renderDepartments() {
+            document.getElementById('departmentContainer').innerHTML = departments.map(function(d) {
+                return '<div class="dept-item" onclick="openDeptDrill(\'' + d.name + '\')">' +
+                    '<div class="dept-dot" style="background:' + d.color + ';"></div>' +
+                    '<span class="dept-name">' + d.name + '</span>' +
+                    (d.critical > 0 ? '<span style="background:#ef4444;color:white;padding:2px 6px;border-radius:8px;font-size:0.6rem;font-weight:600;">' + d.critical + '</span>' : '') +
+                    '<div class="dept-bar"><div class="dept-fill" style="width:' + (d.complete/d.tasks)*100 + '%;background:' + d.color + ';"></div></div>' +
+                    '<span class="dept-count">' + d.complete + '/' + d.tasks + '</span></div>';
+            }).join('');
+        }
+
+        function renderSystems() {
+            document.getElementById('systemContainer').innerHTML = systems.map(function(s) {
+                return '<div class="system-item"><div class="system-dot ' + s.status + '"></div><span class="system-name">' + s.name + '</span></div>';
+            }).join('');
+        }
+
+        function renderAdvisors(filter) {
+            filter = filter || 'all';
+            var list = advisorData;
+            if (filter !== 'all') list = list.filter(function(a) { return a.riskLevel === filter; });
+
+            document.getElementById('advisorContainer').innerHTML = list.map(function(a) {
+                var phaseColor = '#94a3b8';
+                for (var i = 0; i < phaseData.length; i++) {
+                    if (phaseData[i].name === a.phase) { phaseColor = phaseData[i].color; break; }
+                }
+                return '<div class="advisor-card ' + a.riskLevel + '" onclick="openAdvisorDrill(' + a.id + ')">' +
+                    '<div class="advisor-header"><div>' +
+                        '<div class="advisor-name">' + a.name + ' <span class="risk-badge ' + a.riskLevel + '">' + a.riskScore + '</span></div>' +
+                        '<div class="advisor-firm">' + a.firm + ' <span class="channel-badge ' + (a.channel.includes('PWS') ? 'pws' : a.channel.includes('Bluespring') ? 'bluespring' : 'direct') + '">' + a.channel + '</span></div>' +
+                    '</div><div>' +
+                        '<div class="advisor-aum-value">' + formatCurrency(a.aum) + '</div>' +
+                        '<div class="advisor-aum-label">' + formatCurrency(a.commission) + ' commission</div>' +
+                    '</div></div>' +
+                    '<div class="advisor-meta">' +
+                        '<div class="meta-item"><div class="meta-label">Phase</div><div class="meta-value" style="color:' + phaseColor + ';">' + a.phase + '</div></div>' +
+                        '<div class="meta-item"><div class="meta-label">Reg Date</div><div class="meta-value">' + a.regDate + '</div></div>' +
+                        '<div class="meta-item"><div class="meta-label">OBC</div><div class="meta-value">' + a.obc.split(' ')[0] + '</div></div>' +
+                        '<div class="meta-item"><div class="meta-label">Prev BD</div><div class="meta-value">' + a.prevBD + '</div></div>' +
+                    '</div>' +
+                    '<div class="progress-bar"><div class="progress-fill" style="width:' + a.progress + '%;"></div></div>' +
+                    (a.alerts.length > 0 ?
+                        '<div class="alert-box ' + a.alerts[0].severity + '"><span>!</span><div><div class="alert-title ' + a.alerts[0].severity + '">' + a.alerts.length + ' Alert' + (a.alerts.length > 1 ? 's' : '') + '</div><div class="alert-desc">' + a.alerts[0].title + '</div></div></div>' :
+                        '<div class="alert-box low"><span>+</span><div><div class="alert-title low">On track</div></div></div>'
+                    ) + '</div>';
+            }).join('');
+        }
+
+        function filterAdvisors() {
+            renderAdvisors(document.getElementById('riskFilter').value);
+        }
+
+        function renderUpcoming() {
+            var upcoming = advisorData.filter(function(a) { return a.daysToReg > 0 && a.daysToReg < 30; }).sort(function(a,b) { return a.daysToReg - b.daysToReg; }).slice(0,5);
+            document.getElementById('upcomingContainer').innerHTML = upcoming.map(function(a) {
+                return '<div class="upcoming-item" onclick="openAdvisorDrill(' + a.id + ')"><div><div class="upcoming-name">' + a.name + '</div><div class="upcoming-date">' + a.regDate + ' (' + a.daysToReg + 'd)</div></div>' +
+                    '<div class="upcoming-dot" style="background:' + (a.riskLevel==='critical'?'#ef4444':a.riskLevel==='high'?'#f97316':'#10b981') + ';"></div></div>';
+            }).join('');
+        }
+
+        function renderActivity() {
+            document.getElementById('activityContainer').innerHTML = activities.slice(0,5).map(function(a) {
+                return '<div class="activity-item"><div class="activity-icon ' + a.type + '">' + a.icon + '</div><div><div class="activity-title">' + a.title + '</div><div class="activity-meta">' + a.desc + ' - ' + a.time + '</div></div></div>';
+            }).join('');
+        }
+
+        function renderPipelineView() {
+            document.getElementById('mainGrid').innerHTML = '<div style="grid-column:1/-1;"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">' +
+                '<div class="kpi-card blue"><div class="kpi-value">' + formatCurrency(platformKpis.totalAum) + '</div><div class="kpi-label">Total Pipeline AUM</div></div>' +
+                '<div class="kpi-card purple"><div class="kpi-value">' + formatCurrency(platformKpis.totalCommission) + '</div><div class="kpi-label">Total Commission</div></div>' +
+                '<div class="kpi-card emerald"><div class="kpi-value">' + advisorData.length + '</div><div class="kpi-label">Active Advisors</div></div>' +
+                '<div class="kpi-card cyan"><div class="kpi-value">38d</div><div class="kpi-label">Avg Cycle Time</div></div>' +
+                '</div><div class="panel"><div class="panel-header"><span class="panel-title">Pipeline Funnel - Real Data from Spreadsheet</span></div><div class="panel-body">' +
+                phaseData.map(function(p) {
+                    return '<div style="display:grid;grid-template-columns:180px 1fr 80px 80px;gap:16px;padding:12px;background:#334155;border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="openPhaseDrill(\'' + p.name + '\')">' +
+                        '<div><div style="font-weight:600;">' + p.name + '</div><div style="font-size:0.75rem;color:#64748b;">' + p.avgDays + ' avg days</div></div>' +
+                        '<div style="height:36px;background:#1e293b;border-radius:8px;overflow:hidden;"><div style="height:100%;width:' + Math.min(p.count*12,100) + '%;background:' + p.color + ';border-radius:8px;display:flex;align-items:center;padding:0 12px;font-size:0.8rem;font-weight:600;">' + p.count + ' advisors</div></div>' +
+                        '<div style="text-align:center;"><div style="font-size:1rem;font-weight:600;color:' + (p.conversion>=90?'#10b981':'#f59e0b') + ';">' + p.conversion + '%</div><div style="font-size:0.65rem;color:#64748b;">Conv</div></div>' +
+                        '<div style="text-align:center;"><div style="font-size:1rem;font-weight:600;">' + formatCurrency(p.aum) + '</div><div style="font-size:0.65rem;color:#64748b;">AUM</div></div></div>';
+                }).join('') + '</div></div></div>';
+        }
+
+        function renderOperationsView() {
+            document.getElementById('mainGrid').innerHTML = '<div style="grid-column:1/-1;"><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:24px;">' +
+                '<div class="kpi-card red"><div class="kpi-value">0%</div><div class="kpi-label">Smooth Onboardings</div><div class="kpi-trend">Per Nola Day 3</div></div>' +
+                '<div class="kpi-card amber"><div class="kpi-value">&lt;2%</div><div class="kpi-label">Bulk Upload Perfect</div><div class="kpi-trend">Connar Day 6</div></div>' +
+                '<div class="kpi-card red"><div class="kpi-value">3,400+</div><div class="kpi-label">Ticket Backlog</div><div class="kpi-trend">Isaiah Day 3</div></div>' +
+                '<div class="kpi-card amber"><div class="kpi-value">4+ wks</div><div class="kpi-label">Alt Investment Time</div><div class="kpi-trend">vs 3-5 days ACAT</div></div>' +
+                '<div class="kpi-card red"><div class="kpi-value">10%</div><div class="kpi-label">Training Retention</div><div class="kpi-trend">Ryan Day 6</div></div>' +
+                '<div class="kpi-card amber"><div class="kpi-value">40%</div><div class="kpi-label">Carrier Appt Issues</div><div class="kpi-trend">Josh Day 4</div></div>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">' +
+                '<div class="kpi-card cyan"><div class="kpi-value">70%</div><div class="kpi-label">L&R Smooth Rate</div><div class="kpi-trend">Target: 95%</div></div>' +
+                '<div class="kpi-card purple"><div class="kpi-value">75%</div><div class="kpi-label">Need KIM Help</div><div class="kpi-trend">Brandon Day 3</div></div>' +
+                '<div class="kpi-card emerald"><div class="kpi-value">98-99%</div><div class="kpi-label">Producer Comp Acc.</div><div class="kpi-trend">Trish Day 4</div></div>' +
+                '<div class="kpi-card blue"><div class="kpi-value">$15-35M</div><div class="kpi-label">Annual AUM Loss</div><div class="kpi-trend">Exec Sponsor</div></div>' +
+                '</div>' +
+                '<div class="panel"><div class="panel-header"><span class="panel-title">Critical BPMN 14.0 Issues Impacting Current Pipeline</span></div><div class="panel-body">' +
+                '<div class="issue-card"><div class="issue-title">Mac/Windows Bulk Upload Incompatibility - Blocking Wealth Empowerment ($547M AUM)</div><div class="issue-text">Bulk upload templates require Windows with Excel desktop. Mac users cannot use bulk upload at all. Wealth Empowerment has failed 3 times.</div><div class="issue-quote">"The bulk upload process is like trying to use a 1995 fax machine"<span class="issue-quote-attr">- Victoria, New Client Services</span></div></div>' +
+                '<div class="issue-card"><div class="issue-title">ZERO Smooth Onboardings - Systemic Failure</div><div class="issue-text">Every single onboarding has had significant issues. Not a single smooth transition.</div><div class="issue-quote">"I have not had a single smooth onboarding. Not one. Things are a mess."<span class="issue-quote-attr">- Nola Talauega, Onsite Support</span></div></div>' +
+                '<div class="issue-card"><div class="issue-title">Salesforce Must Be Scrapped - Day 6 Finding</div><div class="issue-text">Per Lindsay: The way Kestra uses Salesforce today cannot continue. Built as Frankenstein with no functional owner. EOB data job is single point of failure - no one on team understands it.</div><div class="issue-quote">"The Salesforce, the way that we use Salesforce today... we cannot continue to do."<span class="issue-quote-attr">- Lindsay, Systems Expert (departing)</span></div></div>' +
+                '<div class="issue-card"><div class="issue-title">Single PWS OBC Managing 5-6 Transitions - Affects Campus, Kingdom, Highland, Amy Du, Turas</div><div class="issue-text">Delaney is the sole person managing PWS transitions. Spends hours on hold with carriers. Single point of failure.</div><div class="issue-quote">"I spend hours on hold with carriers every week"<span class="issue-quote-attr">- Delaney Kenner, PWS OBC</span></div></div>' +
+                '</div></div></div>';
+        }
+
+        function renderBpmnView() {
+            var allIssues = [];
+            advisorData.forEach(function(a) {
+                if (a.bpmnIssues && a.bpmnIssues.length > 0) {
+                    a.bpmnIssues.forEach(function(issue) {
+                        allIssues.push({ advisor: a.name, aum: a.aum, commission: a.commission, title: issue.title, desc: issue.desc, source: issue.source, quote: issue.quote, attr: issue.attr });
+                    });
+                }
+            });
+
+            document.getElementById('mainGrid').innerHTML = '<div style="grid-column:1/-1;">' +
+                '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px;">' +
+                '<div class="kpi-card red"><div class="kpi-value">100+</div><div class="kpi-label">Issues Documented</div><div class="kpi-trend">BPMN 14.0</div></div>' +
+                '<div class="kpi-card amber"><div class="kpi-value">32</div><div class="kpi-label">Swimlanes Mapped</div><div class="kpi-trend">11 Departments</div></div>' +
+                '<div class="kpi-card purple"><div class="kpi-value">35</div><div class="kpi-label">Stakeholders Interviewed</div><div class="kpi-trend">Days 1-6</div></div>' +
+                '<div class="kpi-card cyan"><div class="kpi-value">15+</div><div class="kpi-label">SOPs Verified</div><div class="kpi-trend">Whale SOPs</div></div>' +
+                '<div class="kpi-card blue"><div class="kpi-value">' + allIssues.length + '</div><div class="kpi-label">Issues Affecting Pipeline</div><div class="kpi-trend">Real advisors</div></div>' +
+                '</div>' +
+                '<div class="panel"><div class="panel-header"><span class="panel-title">BPMN Issues Mapped to Real Pipeline Advisors</span></div><div class="panel-body">' +
+                allIssues.map(function(i) {
+                    return '<div class="issue-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div class="issue-title">' + i.title + '</div><span style="font-size:0.7rem;background:#334155;padding:4px 10px;border-radius:8px;">' + i.advisor + ' - ' + formatCurrency(i.aum) + '</span></div>' +
+                        '<div class="issue-text">' + i.desc + '</div>' +
+                        (i.quote ? '<div class="issue-quote">"' + i.quote + '"' + (i.attr ? '<span class="issue-quote-attr">- ' + i.attr + '</span>' : '') + '</div>' : '') +
+                        '<div class="issue-source">Source: ' + i.source + '</div></div>';
+                }).join('') +
+                '</div></div></div>';
+        }
+
+        function renderInterviewsView() {
+            document.getElementById('mainGrid').innerHTML = '<div style="grid-column:1/-1;">' +
+                '<div style="background:linear-gradient(135deg,#dc2626 0%,#f59e0b 100%);color:white;padding:24px;border-radius:16px;margin-bottom:24px;">' +
+                    '<h2 style="font-size:1.5rem;margin-bottom:8px;">Advisor Interview Synthesis - BPMN 14.0</h2>' +
+                    '<p style="opacity:0.9;">December 15-18, 2024 - Direct field perspective on onboarding experience</p>' +
+                    '<div style="display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;">' +
+                        '<div style="background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:20px;font-size:0.85rem;"><strong>9</strong> Advisors Interviewed</div>' +
+                        '<div style="background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:20px;font-size:0.85rem;"><strong>4</strong> Days of Interviews</div>' +
+                        '<div style="background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:20px;font-size:0.85rem;"><strong>$1.5B+</strong> Combined AUM</div>' +
+                        '<div style="background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:20px;font-size:0.85rem;"><strong>7,000+</strong> Total Accounts</div>' +
+                        '<div style="background:rgba(220,38,38,0.5);padding:8px 16px;border-radius:20px;font-size:0.85rem;"><strong>1-10</strong> Rating Range</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="background:linear-gradient(135deg,#fef2f2 0%,#fee2e2 100%);border:2px solid #dc2626;border-radius:16px;padding:20px;margin-bottom:24px;">' +
+                    '<h3 style="color:#dc2626;font-size:1rem;margin-bottom:12px;">CRITICAL: Satisfaction Trajectory in Crisis</h3>' +
+                    '<p style="font-size:0.9rem;line-height:1.6;color:#991b1b;">Day 01: 7.5-8/10 ratings, would recommend. Day 02: 7/10, would not specifically recommend. Day 03: 10/10 onboarding but 3.5-4/10 post-graduation. <strong>Day 04: 1/10 - "I would never recommend Kestra."</strong></p>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">' +
+                    '<div class="kpi-card blue" style="cursor:pointer;" onclick="openInterviewDay(1)"><div class="kpi-header"><div class="kpi-icon">1</div><span class="kpi-badge">Day 1</span></div><div class="kpi-value">7.5-8</div><div class="kpi-label">Rating /10</div><div class="kpi-trend" style="color:#10b981;">Would Recommend</div></div>' +
+                    '<div class="kpi-card purple" style="cursor:pointer;" onclick="openInterviewDay(2)"><div class="kpi-header"><div class="kpi-icon">2</div><span class="kpi-badge">Day 2</span></div><div class="kpi-value">7/10</div><div class="kpi-label">Rating</div><div class="kpi-trend" style="color:#f59e0b;">Would NOT Recommend</div></div>' +
+                    '<div class="kpi-card amber" style="cursor:pointer;" onclick="openInterviewDay(3)"><div class="kpi-header"><div class="kpi-icon">3</div><span class="kpi-badge">Day 3</span></div><div class="kpi-value">10/3.5</div><div class="kpi-label">Onboard/Post-Grad</div><div class="kpi-trend" style="color:#ef4444;">Support Collapsed</div></div>' +
+                    '<div class="kpi-card red" style="cursor:pointer;" onclick="openInterviewDay(4)"><div class="kpi-header"><div class="kpi-icon">!</div><span class="kpi-badge">CRISIS</span></div><div class="kpi-value">1/10</div><div class="kpi-label">Day 4 - Chad Roland</div><div class="kpi-trend">"Never recommend"</div></div>' +
+                '</div>' +
+                '<div style="background:linear-gradient(135deg,#1e293b 0%,#334155 100%);color:white;border-radius:16px;padding:24px;margin-bottom:24px;">' +
+                    '<h3 style="margin-bottom:16px;">Cumulative Patterns (Days 01-04) - BPMN 14.0</h3>' +
+                    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">' +
+                        '<div style="background:rgba(220,38,38,0.3);border:1px solid #dc2626;border-radius:8px;padding:16px;"><h4 style="font-size:0.85rem;margin-bottom:8px;opacity:0.9;">Satisfaction Trajectory</h4><div style="font-size:1.3rem;font-weight:700;">In Crisis</div><div style="font-size:0.8rem;opacity:0.8;margin-top:4px;">Day 1: 7.5-8 - Day 4: 1/10</div></div>' +
+                        '<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:16px;"><h4 style="font-size:0.85rem;margin-bottom:8px;opacity:0.9;">Bulk Upload</h4><div style="font-size:1.3rem;font-weight:700;">9/9 Issues</div><div style="font-size:0.8rem;opacity:0.8;margin-top:4px;">Every interview cited problems</div></div>' +
+                        '<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:16px;"><h4 style="font-size:0.85rem;margin-bottom:8px;opacity:0.9;">Onsite Specialist</h4><div style="font-size:1.3rem;font-weight:700;">Binary</div><div style="font-size:0.8rem;opacity:0.8;margin-top:4px;">Experienced: 8-10 | Inexperienced: 0-3</div></div>' +
+                        '<div style="background:rgba(220,38,38,0.3);border:1px solid #dc2626;border-radius:8px;padding:16px;"><h4 style="font-size:0.85rem;margin-bottom:8px;opacity:0.9;">Technology Ranking</h4><div style="font-size:1.3rem;font-weight:700;">Last Place</div><div style="font-size:0.8rem;opacity:0.8;margin-top:4px;">Worst by advisors with comparison</div></div>' +
+                        '<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:16px;"><h4 style="font-size:0.85rem;margin-bottom:8px;opacity:0.9;">Post-Graduation Support</h4><div style="font-size:1.3rem;font-weight:700;">Collapsed</div><div style="font-size:0.8rem;opacity:0.8;margin-top:4px;">10/10 onboarding - 3.5/10 after</div></div>' +
+                        '<div style="background:rgba(16,185,129,0.2);border-radius:8px;padding:16px;"><h4 style="font-size:0.85rem;margin-bottom:8px;opacity:0.9;">Advisor Commitment</h4><div style="font-size:1.3rem;font-weight:700;">Salvageable</div><div style="font-size:0.8rem;opacity:0.8;margin-top:4px;">Despite 1/10, want Kestra to succeed</div></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="panel"><div class="panel-header"><span class="panel-title">Key Stakeholder Quotes - BPMN 14.0</span></div><div class="panel-body">' +
+                    '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:12px;">' +
+                        '<div style="color:#dc2626;font-weight:600;margin-bottom:8px;">Chad Roland - Day 4 (1/10)</div>' +
+                        '<div style="font-style:italic;color:#991b1b;">"I would never recommend Kestra to anyone. The technology is terrible, the onboarding was a disaster, and I feel like I was sold a bill of goods."</div>' +
+                    '</div>' +
+                    '<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:12px;">' +
+                        '<div style="color:#92400e;font-weight:600;margin-bottom:8px;">Nola Talauega - Day 3</div>' +
+                        '<div style="font-style:italic;color:#92400e;">"I have not had a single smooth onboarding. Not one. Things are a mess."</div>' +
+                    '</div>' +
+                    '<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:12px;">' +
+                        '<div style="color:#92400e;font-weight:600;margin-bottom:8px;">Victoria Guzman - Day 1</div>' +
+                        '<div style="font-style:italic;color:#92400e;">"The bulk upload process is like trying to use a 1995 fax machine."</div>' +
+                    '</div>' +
+                    '<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:12px;">' +
+                        '<div style="color:#92400e;font-weight:600;margin-bottom:8px;">Lindsay - Day 6 (departing)</div>' +
+                        '<div style="font-style:italic;color:#92400e;">"The Salesforce, the way that we use Salesforce today... we cannot continue to do. There is nobody left on the data team that understands that data job."</div>' +
+                    '</div>' +
+                    '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px;">' +
+                        '<div style="color:#0369a1;font-weight:600;margin-bottom:8px;">Ryan - Day 6 (Wealth Consulting)</div>' +
+                        '<div style="font-style:italic;color:#0369a1;">"Advisors retain perhaps 10% of training content. They come in overwhelmed, attend multiple sessions, then call back repeatedly asking about topics already covered."</div>' +
+                    '</div>' +
+                '</div></div></div>';
+        }
+
+        function openInterviewDay(day) {
+            var content = '';
+            if (day === 1) {
+                content = '<div class="modal-stats"><div class="modal-stat"><div class="modal-stat-value" style="color:#10b981;">7.5-8</div><div class="modal-stat-label">Rating /10</div></div><div class="modal-stat"><div class="modal-stat-value" style="color:#10b981;">Yes</div><div class="modal-stat-label">Would Recommend</div></div><div class="modal-stat"><div class="modal-stat-value">2</div><div class="modal-stat-label">Advisors</div></div><div class="modal-stat"><div class="modal-stat-value">5</div><div class="modal-stat-label">Stakeholders</div></div></div>' +
+                    '<div class="detail-section"><div class="detail-section-title">Key Findings</div><p style="margin-bottom:12px;">Insurance/annuity integration identified as primary pain point. Training retention at 10%. 2 FTEs working 8-11 hour days.</p>' +
+                    '<div class="issue-quote">"When it came to annuities, it was all over the place. Wrong paperwork getting client signatures represents compliance risk."<span class="issue-quote-attr">- Brenn Watts</span></div></div>';
+            } else if (day === 2) {
+                content = '<div class="modal-stats"><div class="modal-stat"><div class="modal-stat-value" style="color:#f59e0b;">7</div><div class="modal-stat-label">Rating /10</div></div><div class="modal-stat"><div class="modal-stat-value" style="color:#ef4444;">No</div><div class="modal-stat-label">Would NOT Recommend</div></div><div class="modal-stat"><div class="modal-stat-value">2</div><div class="modal-stat-label">Advisors</div></div><div class="modal-stat"><div class="modal-stat-value">5</div><div class="modal-stat-label">Stakeholders</div></div></div>' +
+                    '<div class="detail-section"><div class="detail-section-title">Key Findings</div><p style="margin-bottom:12px;">Alternative investments = #1 operational pain. 4+ week timelines vs 3-5 days ACAT. No tracking system. Sam Arnott: "We have no tracking."</p>' +
+                    '<div class="issue-quote">"Alternative investments are the number one pain point in transfers."<span class="issue-quote-attr">- Sam Arnott, Trading & Cashiering</span></div></div>';
+            } else if (day === 3) {
+                content = '<div class="modal-stats"><div class="modal-stat"><div class="modal-stat-value" style="color:#10b981;">10</div><div class="modal-stat-label">Onboarding</div></div><div class="modal-stat"><div class="modal-stat-value" style="color:#ef4444;">3.5</div><div class="modal-stat-label">Post-Graduation</div></div><div class="modal-stat"><div class="modal-stat-value">3</div><div class="modal-stat-label">Advisors</div></div><div class="modal-stat"><div class="modal-stat-value">5</div><div class="modal-stat-label">Stakeholders</div></div></div>' +
+                    '<div class="detail-section"><div class="detail-section-title">Key Findings</div><p style="margin-bottom:12px;">0% smooth onboardings. 75% need KIM help. Post-graduation support collapsed. 3,400+ ticket backlog inherited by Isaiah.</p>' +
+                    '<div class="issue-quote">"I have not had a single smooth onboarding. Not one. Things are a mess."<span class="issue-quote-attr">- Nola Talauega, Onsite Support</span></div></div>';
+            } else if (day === 4) {
+                content = '<div class="modal-stats"><div class="modal-stat"><div class="modal-stat-value" style="color:#ef4444;">1</div><div class="modal-stat-label">Rating /10 - CRISIS</div></div><div class="modal-stat"><div class="modal-stat-value" style="color:#ef4444;">NEVER</div><div class="modal-stat-label">Would Recommend</div></div><div class="modal-stat"><div class="modal-stat-value">1</div><div class="modal-stat-label">Advisor</div></div><div class="modal-stat"><div class="modal-stat-value">5</div><div class="modal-stat-label">Stakeholders</div></div></div>' +
+                    '<div class="detail-section" style="background:#fef2f2;border:1px solid #fecaca;"><div class="detail-section-title" style="color:#dc2626;">CRISIS ALERT - Day 4</div><p style="margin-bottom:12px;color:#991b1b;">Technology ranked last by all advisors with comparison experience. Bulk upload "does not work". Complete failure of support systems.</p>' +
+                    '<div class="issue-quote" style="background:#fee2e2;border-color:#ef4444;">"I would never recommend Kestra to anyone. The technology is terrible, the onboarding was a disaster, and I feel like I was sold a bill of goods."<span class="issue-quote-attr">- Chad Roland</span></div></div>';
+            }
+            openModal('Interview Day ' + day, 'Advisor Interview Findings - BPMN 14.0', content);
+        }
+
+        // ========== MODAL FUNCTIONS ==========
+        function openModal(title, subtitle, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalSubtitle').textContent = subtitle;
+            document.getElementById('modalBody').innerHTML = content || '';
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function openAdvisorDrill(id) {
+            var a = null;
+            for (var i = 0; i < advisorData.length; i++) {
+                if (advisorData[i].id === id) { a = advisorData[i]; break; }
+            }
+            if (!a) return;
+
+            openModal(a.name, a.firm + ' | ' + a.channel + ' | Entity: ' + a.entityId,
+                '<div class="modal-tabs">' +
+                    '<button class="modal-tab active" onclick="showAdvisorTab(' + id + ',\'overview\')">Overview</button>' +
+                    '<button class="modal-tab" onclick="showAdvisorTab(' + id + ',\'journey\')">Journey</button>' +
+                    '<button class="modal-tab" onclick="showAdvisorTab(' + id + ',\'issues\')">BPMN Issues</button>' +
+                    '<button class="modal-tab" onclick="showAdvisorTab(' + id + ',\'kpis\')">KPIs</button>' +
+                '</div>' +
+                '<div id="advisorTabContent">' + getAdvisorOverview(a) + '</div>'
+            );
+        }
+
+        function showAdvisorTab(id, tab) {
+            var a = null;
+            for (var i = 0; i < advisorData.length; i++) {
+                if (advisorData[i].id === id) { a = advisorData[i]; break; }
+            }
+            var tabs = document.querySelectorAll('.modal-tab');
+            for (var j = 0; j < tabs.length; j++) { tabs[j].classList.remove('active'); }
+            event.target.classList.add('active');
+            var content = '';
+            if (tab === 'overview') content = getAdvisorOverview(a);
+            else if (tab === 'journey') content = getAdvisorJourney(a);
+            else if (tab === 'issues') content = getAdvisorIssues(a);
+            else if (tab === 'kpis') content = getAdvisorKpis(a);
+            document.getElementById('advisorTabContent').innerHTML = content;
+        }
+
+        function getAdvisorOverview(a) {
+            var riskColor = a.riskLevel === 'critical' ? '#ef4444' : a.riskLevel === 'high' ? '#f97316' : a.riskLevel === 'medium' ? '#f59e0b' : '#10b981';
+            return '<div class="modal-stats">' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:#60a5fa;">' + formatCurrency(a.aum) + '</div><div class="modal-stat-label">Total AUM</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:#a78bfa;">' + formatCurrency(a.commission) + '</div><div class="modal-stat-label">Commission</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:' + riskColor + ';">' + a.riskScore + '</div><div class="modal-stat-label">Risk Score</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value">' + a.progress + '%</div><div class="modal-stat-label">Progress</div></div>' +
+                '</div>' +
+                '<div class="detail-grid">' +
+                '<div class="detail-section"><div class="detail-section-title">Advisor Details (From Spreadsheet)</div>' +
+                    '<div class="detail-row"><span class="detail-label">Phase</span><span class="detail-value">' + a.phase + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Registration Date</span><span class="detail-value">' + a.regDate + (a.daysToReg > 0 ? ' (' + a.daysToReg + ' days)' : '') + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Channel</span><span class="detail-value">' + a.channel + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Lead Source</span><span class="detail-value">' + a.leadSource + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Previous BD</span><span class="detail-value">' + a.prevBD + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Recruiter</span><span class="detail-value">' + a.recruiter + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">OBC</span><span class="detail-value">' + a.obc + '</span></div>' +
+                    '<div class="detail-row"><span class="detail-label">Entity ID</span><span class="detail-value">' + a.entityId + '</span></div>' +
+                '</div>' +
+                '<div class="detail-section"><div class="detail-section-title">Active Alerts (' + a.alerts.length + ')</div>' +
+                (a.alerts.length > 0 ? a.alerts.map(function(al) {
+                    return '<div style="padding:10px;background:rgba(' + (al.severity==='critical'?'239,68,68':al.severity==='high'?'249,115,22':'245,158,11') + ',0.1);border-radius:8px;margin-bottom:8px;border-left:3px solid ' + (al.severity==='critical'?'#ef4444':al.severity==='high'?'#f97316':'#f59e0b') + ';">' +
+                        '<div style="font-size:0.8rem;font-weight:600;color:' + (al.severity==='critical'?'#fca5a5':'#fdba74') + ';">' + al.title + '</div>' +
+                        '<div style="font-size:0.75rem;color:#94a3b8;margin-top:4px;">' + al.desc + '</div>' +
+                        '<div style="font-size:0.7rem;color:#64748b;margin-top:4px;">' + al.owner + ' - ' + al.age + '</div></div>';
+                }).join('') : '<div style="color:#6ee7b7;padding:20px;text-align:center;">No alerts - on track</div>') +
+                '</div></div>' +
+                (a.recommendations && a.recommendations.length > 0 ? '<div style="margin-top:24px;"><div class="detail-section-title">AI Recommendations</div>' +
+                a.recommendations.map(function(r) {
+                    return '<div class="recommendation-card"><div class="recommendation-title">' + r.title + '</div><div class="recommendation-text">' + r.text + '</div><span class="recommendation-impact">' + r.impact + '</span></div>';
+                }).join('') + '</div>' : '');
+        }
+
+        function getAdvisorJourney(a) {
+            var phaseNames = ['Lead','Qual','Pre-Reg','Reg Day','Transfer','Practice','Grad'];
+            var lanes = a.swimlanes || {};
+            var totalTasks = 0, completeTasks = 0, blockedTasks = 0;
+            for (var key in lanes) {
+                totalTasks += lanes[key].tasks.length;
+                for (var i = 0; i < lanes[key].tasks.length; i++) {
+                    if (lanes[key].tasks[i].status === 'complete') completeTasks++;
+                    if (lanes[key].tasks[i].status === 'blocked') blockedTasks++;
+                }
+            }
+
+            var html = '<div class="journey-stats">' +
+                '<div><div class="journey-stat-value" style="color:#10b981;">' + completeTasks + '</div><div class="journey-stat-label">Complete</div></div>' +
+                '<div><div class="journey-stat-value" style="color:#ef4444;">' + blockedTasks + '</div><div class="journey-stat-label">Blocked</div></div>' +
+                '<div><div class="journey-stat-value">' + (totalTasks - completeTasks - blockedTasks) + '</div><div class="journey-stat-label">Remaining</div></div>' +
+                '<div><div class="journey-stat-value">' + (totalTasks > 0 ? Math.round((completeTasks/totalTasks)*100) : 0) + '%</div><div class="journey-stat-label">Overall</div></div>' +
+                '</div>' +
+                '<div class="phase-timeline">';
+            for (var j = 0; j < phaseNames.length; j++) {
+                var dotClass = (j+1 < a.phaseNum) ? 'complete' : (j+1 === a.phaseNum) ? 'current' : 'pending';
+                var nameClass = (j+1 === a.phaseNum) ? 'current' : '';
+                html += '<div class="phase-step"><div class="phase-step-dot ' + dotClass + '">' + ((j+1 < a.phaseNum) ? '+' : (j+1)) + '</div><div class="phase-step-name ' + nameClass + '">' + phaseNames[j] + '</div></div>';
+            }
+            html += '</div>';
+
+            if (Object.keys(lanes).length > 0) {
+                html += '<div class="swimlane-container">';
+                for (var lane in lanes) {
+                    var l = lanes[lane];
+                    var lComplete = 0, lBlocked = 0;
+                    for (var k = 0; k < l.tasks.length; k++) {
+                        if (l.tasks[k].status === 'complete') lComplete++;
+                        if (l.tasks[k].status === 'blocked') lBlocked++;
+                    }
+                    html += '<div class="swimlane expanded">' +
+                        '<div class="swimlane-header" onclick="this.parentElement.classList.toggle(\'expanded\')">' +
+                        '<div class="swimlane-icon" style="background:' + l.color + '22;color:' + l.color + ';">' + l.icon + '</div>' +
+                        '<div class="swimlane-title">' + lane + '</div>' +
+                        (lBlocked > 0 ? '<span style="background:#ef4444;color:white;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">' + lBlocked + ' blocked</span>' : '') +
+                        '<div class="swimlane-progress">' + lComplete + '/' + l.tasks.length + '</div>' +
+                        '<div class="swimlane-chevron">v</div></div>' +
+                        '<div class="swimlane-body"><div class="swimlane-tasks">';
+                    for (var m = 0; m < l.tasks.length; m++) {
+                        var t = l.tasks[m];
+                        var statusIcon = t.status === 'complete' ? '+' : t.status === 'blocked' ? 'X' : t.status === 'in-progress' ? 'o' : t.status === 'warning' ? '!' : '-';
+                        html += '<div class="swimlane-task"><div class="task-status ' + t.status + '">' + statusIcon + '</div><div class="task-name">' + t.name + '</div><div class="task-due" style="color:' + (t.due==='Overdue'||t.due==='Blocked'?'#ef4444':'#64748b') + ';">' + t.due + '</div></div>';
+                    }
+                    html += '</div></div></div>';
+                }
+                html += '</div>';
+            } else {
+                html += '<div style="text-align:center;padding:40px;color:#64748b;">Detailed swimlane data not yet mapped for this advisor.</div>';
+            }
+            return html;
+        }
+
+        function getAdvisorIssues(a) {
+            if (!a.bpmnIssues || a.bpmnIssues.length === 0) {
+                return '<div style="text-align:center;padding:40px;color:#64748b;">No BPMN issues currently documented for this advisor.</div>';
+            }
+            return '<div class="detail-section-title">BPMN Issues Affecting ' + a.name + '</div>' +
+                a.bpmnIssues.map(function(i) {
+                    return '<div class="issue-card"><div class="issue-title">' + i.title + '</div>' +
+                        '<div class="issue-text">' + i.desc + '</div>' +
+                        (i.quote ? '<div class="issue-quote">"' + i.quote + '"' + (i.attr ? '<span class="issue-quote-attr">- ' + i.attr + '</span>' : '') + '</div>' : '') +
+                        '<div class="issue-source">Source: ' + i.source + '</div></div>';
+                }).join('');
+        }
+
+        function getAdvisorKpis(a) {
+            var kpis = a.kpis;
+            var html = '<div class="metric-grid">';
+            if (kpis.bulkUploadAttempts !== undefined) {
+                html += '<div class="metric-card"><div class="metric-card-header"><span class="metric-domain operations">Operations</span></div><div class="metric-name">Bulk Upload</div><div class="metric-value" style="color:' + (kpis.bulkUploadSuccess > 0 ? '#10b981' : '#ef4444') + ';">' + kpis.bulkUploadSuccess + '/' + kpis.bulkUploadAttempts + '</div><div class="metric-trend">' + (kpis.bulkUploadErrors || 0) + ' errors</div></div>';
+            }
+            if (kpis.carrierAppts) {
+                html += '<div class="metric-card"><div class="metric-card-header"><span class="metric-domain compliance">Licensing</span></div><div class="metric-name">Carrier Appts</div><div class="metric-value" style="color:' + (kpis.carrierAppts.complete === kpis.carrierAppts.total ? '#10b981' : '#f59e0b') + ';">' + kpis.carrierAppts.complete + '/' + kpis.carrierAppts.total + '</div><div class="metric-trend">' + (kpis.carrierAppts.total - kpis.carrierAppts.complete) + ' pending</div></div>';
+            }
+            if (kpis.u4Status) {
+                html += '<div class="metric-card"><div class="metric-card-header"><span class="metric-domain compliance">Compliance</span></div><div class="metric-name">U4 Status</div><div class="metric-value" style="font-size:1rem;color:' + (kpis.u4Status.indexOf('Complete') >= 0 ? '#10b981' : '#f59e0b') + ';">' + kpis.u4Status + '</div><div class="metric-trend">FINRA: ' + (kpis.finraStatus || 'N/A') + '</div></div>';
+            }
+            if (kpis.techReadiness !== undefined) {
+                html += '<div class="metric-card"><div class="metric-card-header"><span class="metric-domain tech">Tech</span></div><div class="metric-name">Tech Readiness</div><div class="metric-value" style="color:' + (kpis.techReadiness === 100 ? '#10b981' : kpis.techReadiness > 70 ? '#f59e0b' : '#ef4444') + ';">' + kpis.techReadiness + '%</div><div class="metric-trend">Target: 100%</div></div>';
+            }
+            if (kpis.docsComplete !== undefined) {
+                html += '<div class="metric-card"><div class="metric-card-header"><span class="metric-domain operations">Onboarding</span></div><div class="metric-name">Docs Complete</div><div class="metric-value" style="color:' + (kpis.docsComplete === 100 ? '#10b981' : '#f59e0b') + ';">' + kpis.docsComplete + '%</div><div class="metric-trend">All required docs</div></div>';
+            }
+            if (kpis.acatsComplete) {
+                html += '<div class="metric-card"><div class="metric-card-header"><span class="metric-domain operations">Transfers</span></div><div class="metric-name">ACAT Progress</div><div class="metric-value" style="color:#06b6d4;">' + kpis.acatsComplete + '/' + kpis.acatsTotal + '</div><div class="metric-trend">' + Math.round((kpis.acatsComplete/kpis.acatsTotal)*100) + '% complete</div></div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function openInsight(id) {
+            var insights = {
+                'wealth-emp': { title: 'Critical: Wealth Empowerment Group', content: '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:20px;margin-bottom:24px;"><div style="font-size:2rem;font-weight:700;color:#ef4444;">$11.3M Commission at Risk</div><div style="color:#fca5a5;">$547M AUM blocked by Mac/bulk upload incompatibility after 3 failed attempts</div></div><div class="issue-card"><div class="issue-title">Mac/Windows Bulk Upload Incompatibility</div><div class="issue-text">Bulk upload templates require Windows with Excel desktop. Advisor is using Mac. 47 errors after 3 attempts. This is the SINGLE BIGGEST blocker in the pipeline.</div><div class="issue-quote">"The bulk upload process is like trying to use a 1995 fax machine"<span class="issue-quote-attr">- Victoria, New Client Services</span></div></div><div class="recommendation-card"><div class="recommendation-title">Immediate Recommendation</div><div class="recommendation-text">Create Mac-compatible or cloud-based bulk upload alternative. This advisor represents your largest commission opportunity and is completely blocked.</div><span class="recommendation-impact">Unblocks $547M AUM, $11.3M commission</span></div>' },
+                'zero-smooth': { title: 'ZERO Smooth Onboardings', content: '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:20px;margin-bottom:24px;"><div style="font-size:2rem;font-weight:700;color:#ef4444;">0% Smooth Rate</div><div style="color:#fca5a5;">Every single onboarding has had significant issues</div></div><div class="issue-card"><div class="issue-title">Systemic Process Failure</div><div class="issue-text">Per onsite support team lead Nola, there has not been a single smooth onboarding. Issues consistently discovered during onsite visits that should have been caught in pre-registration phases.</div><div class="issue-quote">"I have not had a single smooth onboarding. Not one. Things are a mess."<span class="issue-quote-attr">- Nola Talauega, Onsite Support</span></div></div><div class="recommendation-card"><div class="recommendation-title">Recommendation</div><div class="recommendation-text">Implement pre-visit readiness checklist with hard gates. Establish on-call escalation team during visits. Require readiness certification before scheduling onsite.</div><span class="recommendation-impact">Improves first-day experience for all advisors</span></div>' },
+                'satisfaction': { title: 'Satisfaction Trajectory CRISIS - BPMN 14.0', content: '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:20px;margin-bottom:24px;"><div style="font-size:2rem;font-weight:700;color:#ef4444;">1/10 Rating - Crisis Mode</div><div style="color:#fca5a5;">Satisfaction declined from 7.5-8/10 on Day 1 to 1/10 on Day 4</div></div><div class="issue-card"><div class="issue-title">Day 4: Chad Roland - Complete System Failure</div><div class="issue-text">Technology ranked last by all advisors with comparison experience. Bulk upload "does not work". Post-graduation support collapsed. Advisor explicitly states he would NEVER recommend Kestra.</div><div class="issue-quote">"I would never recommend Kestra to anyone. The technology is terrible, the onboarding was a disaster, and I feel like I was sold a bill of goods."<span class="issue-quote-attr">- Chad Roland, Day 4 Interview</span></div></div><div class="detail-section"><div class="detail-section-title">Satisfaction Trajectory</div><div class="detail-row"><span class="detail-label">Day 1</span><span class="detail-value" style="color:#10b981;">7.5-8/10 - Would Recommend</span></div><div class="detail-row"><span class="detail-label">Day 2</span><span class="detail-value" style="color:#f59e0b;">7/10 - Would NOT Recommend</span></div><div class="detail-row"><span class="detail-label">Day 3</span><span class="detail-value" style="color:#f59e0b;">10/10 Onboarding but 3.5/10 Post-Grad</span></div><div class="detail-row"><span class="detail-label">Day 4</span><span class="detail-value" style="color:#ef4444;">1/10 - CRISIS</span></div></div><div class="recommendation-card"><div class="recommendation-title">Salvageable</div><div class="recommendation-text">Despite 1/10 ratings, advisors still want Kestra to succeed. Immediate action on technology, bulk upload, and post-graduation support can turn this around.</div><span class="recommendation-impact">Board-level priority required</span></div>' },
+                'salesforce': { title: 'Salesforce Must Be Scrapped - BPMN 14.0 Day 6', content: '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:20px;margin-bottom:24px;"><div style="font-size:1.5rem;font-weight:700;color:#ef4444;">Board-Level Technology Initiative</div><div style="color:#fca5a5;">Per Lindsay (departing): "The Salesforce, the way that we use Salesforce today... we cannot continue to do."</div></div><div class="issue-card"><div class="issue-title">Frankenstein System - No Functional Owner</div><div class="issue-text">Built by single individual who has left. Apex triggers no one remaining fully understands. Multiple data jobs write to same tables, overriding each other. Creates unpredictable data state.</div><div class="issue-quote">"There is nobody left on the data team that understands that data job"<span class="issue-quote-attr">- Lindsay, Systems Expert (departing Dec 12)</span></div></div><div class="issue-card"><div class="issue-title">EOB Data Job - Single Point of Failure</div><div class="issue-text">One of the most complex data jobs at Kestra. Runs 20-minute cycles from 8AM-6PM, often going into overtime. No one on current data team understands it. Critical knowledge drain risk.</div><div class="issue-quote">"There are a couple of tables that we legitimately just do not understand how to update"<span class="issue-quote-attr">- Lindsay, Day 6</span></div></div><div class="recommendation-card"><div class="recommendation-title">Recommendation</div><div class="recommendation-text">Document EOB data job architecture IMMEDIATELY before more knowledge leaves. Execute Salesforce transformation as board-level initiative acknowledged.</div><span class="recommendation-impact">Prevents catastrophic system failure</span></div>' },
+                'delaney': { title: 'PWS Capacity Crisis: Delaney Overloaded', content: '<div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:12px;padding:20px;margin-bottom:24px;"><div style="font-size:1.5rem;font-weight:700;color:#f97316;">Single Point of Failure</div><div style="color:#fdba74;">1 person managing 5-6 PWS transitions: Campus, Kingdom, Highland, Amy Du, Turas</div></div><div class="issue-card"><div class="issue-title">No Backup or Support</div><div class="issue-text">Delaney is the sole person managing all PWS transitions. Spends 1+ hours on hold with carriers for status updates. Variable annuity 24-hour hold limits add compliance pressure.</div><div class="issue-quote">"I spend hours on hold with carriers every week"<span class="issue-quote-attr">- Delaney Kenner, PWS OBC</span></div></div><div class="recommendation-card"><div class="recommendation-title">Recommendation</div><div class="recommendation-text">Hire additional PWS OBC immediately. Current load is unsustainable and creates single point of failure risk affecting $1.3B+ in PWS pipeline AUM.</div><span class="recommendation-impact">Reduces capacity risk, improves PWS advisor experience</span></div>' }
+            };
+            var insight = insights[id];
+            if (insight) openModal(insight.title, 'BPMN-Based AI Insight', insight.content);
+        }
+
+        function openKpiDrill(id) {
+            openModal('KPI Deep Dive: ' + id, 'Platform-wide metric analysis', '<div style="text-align:center;padding:40px;color:#64748b;">KPI drill-down content for ' + id + '</div>');
+        }
+
+        function openPhaseDrill(name) {
+            var phase = null;
+            for (var i = 0; i < phaseData.length; i++) {
+                if (phaseData[i].name === name) { phase = phaseData[i]; break; }
+            }
+            var advisorsInPhase = advisorData.filter(function(a) { return a.phase === name; });
+            openModal(name, 'Phase ' + (phaseData.indexOf(phase) + 1) + ' of 7',
+                '<div class="modal-stats">' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:' + phase.color + ';">' + phase.count + '</div><div class="modal-stat-label">Advisors</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:#60a5fa;">' + formatCurrency(phase.aum) + '</div><div class="modal-stat-label">Total AUM</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:' + (phase.conversion >= 90 ? '#10b981' : '#f59e0b') + ';">' + phase.conversion + '%</div><div class="modal-stat-label">Conversion</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value">' + phase.avgDays + '</div><div class="modal-stat-label">Avg Days</div></div></div>' +
+                '<div class="detail-section-title">Advisors in ' + name + '</div>' +
+                (advisorsInPhase.length > 0 ? advisorsInPhase.map(function(a) {
+                    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:#334155;border-radius:10px;margin-bottom:8px;cursor:pointer;border-left:3px solid ' + (a.riskLevel==='critical'?'#ef4444':a.riskLevel==='high'?'#f97316':'#10b981') + ';" onclick="closeModal();setTimeout(function(){openAdvisorDrill(' + a.id + ')},100);">' +
+                        '<div><div style="font-weight:600;">' + a.name + '</div><div style="font-size:0.75rem;color:#64748b;">' + a.firm + ' | ' + a.channel + '</div></div>' +
+                        '<div style="text-align:right;"><div style="font-weight:600;color:#60a5fa;">' + formatCurrency(a.aum) + '</div><div style="font-size:0.75rem;color:#64748b;">' + formatCurrency(a.commission) + ' comm</div></div></div>';
+                }).join('') : '<div style="color:#64748b;text-align:center;padding:20px;">No advisors in this phase</div>')
+            );
+        }
+
+        function openDeptDrill(name) {
+            var dept = null;
+            for (var i = 0; i < departments.length; i++) {
+                if (departments[i].name === name) { dept = departments[i]; break; }
+            }
+            openModal(name, 'Department Workload',
+                '<div class="modal-stats">' +
+                '<div class="modal-stat"><div class="modal-stat-value">' + dept.tasks + '</div><div class="modal-stat-label">Total Tasks</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:#10b981;">' + dept.complete + '</div><div class="modal-stat-label">Complete</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:' + (dept.critical > 0 ? '#ef4444' : '#64748b') + ';">' + dept.critical + '</div><div class="modal-stat-label">Critical</div></div>' +
+                '<div class="modal-stat"><div class="modal-stat-value" style="color:' + dept.color + ';">' + Math.round((dept.complete/dept.tasks)*100) + '%</div><div class="modal-stat-label">Completion</div></div></div>' +
+                '<div class="detail-section"><div class="detail-section-title">Department Info</div>' +
+                '<div class="detail-row"><span class="detail-label">Lead</span><span class="detail-value">' + dept.lead + '</span></div></div>'
+            );
+        }
+
+        function showNotifications() {
+            openModal('Notifications', '12 new alerts',
+                activities.map(function(a) {
+                    return '<div style="display:flex;gap:12px;padding:16px;background:#334155;border-radius:10px;margin-bottom:8px;">' +
+                        '<div class="activity-icon ' + a.type + '">' + a.icon + '</div>' +
+                        '<div style="flex:1;"><div style="font-weight:600;">' + a.title + '</div><div style="font-size:0.8rem;color:#94a3b8;">' + a.desc + '</div><div style="font-size:0.7rem;color:#64748b;margin-top:4px;">' + a.time + '</div></div></div>';
+                }).join('')
+            );
+        }
+
+        function showAllAlerts() {
+            var allAlerts = [];
+            advisorData.forEach(function(a) {
+                a.alerts.forEach(function(al) {
+                    allAlerts.push({ advisor: a.name, aum: a.aum, commission: a.commission, severity: al.severity, title: al.title, desc: al.desc, owner: al.owner, age: al.age });
+                });
+            });
+            openModal('All Pipeline Alerts', allAlerts.length + ' alerts across ' + advisorData.length + ' advisors',
+                allAlerts.map(function(a) {
+                    return '<div style="padding:16px;background:rgba(' + (a.severity==='critical'?'239,68,68':a.severity==='high'?'249,115,22':'245,158,11') + ',0.1);border:1px solid rgba(' + (a.severity==='critical'?'239,68,68':a.severity==='high'?'249,115,22':'245,158,11') + ',0.2);border-radius:10px;margin-bottom:8px;">' +
+                        '<div style="display:flex;justify-content:space-between;"><div style="font-weight:600;color:' + (a.severity==='critical'?'#fca5a5':'#fdba74') + ';">' + a.title + '</div><span style="padding:4px 8px;background:rgba(255,255,255,0.1);border-radius:6px;font-size:0.7rem;">' + a.severity.toUpperCase() + '</span></div>' +
+                        '<div style="font-size:0.8rem;color:#94a3b8;margin-top:4px;">' + a.desc + '</div>' +
+                        '<div style="font-size:0.75rem;color:#64748b;margin-top:8px;">' + a.advisor + ' (' + formatCurrency(a.aum) + ' AUM, ' + formatCurrency(a.commission) + ' comm) | ' + a.owner + ' | ' + a.age + '</div></div>';
+                }).join('')
+            );
+        }
+
+        function generateReport() {
+            openModal('Board Report Generator', 'January 2025 - Real Pipeline Data',
+                '<div style="text-align:center;padding:40px;">' +
+                '<div style="font-size:3rem;margin-bottom:16px;">R</div>' +
+                '<div style="font-size:1.25rem;font-weight:600;margin-bottom:8px;">Ready to Generate Board Report</div>' +
+                '<div style="color:#64748b;margin-bottom:24px;">Comprehensive PDF with real pipeline data (' + advisorData.length + ' advisors, ' + formatCurrency(totalAum) + ' AUM), BPMN issues, and recommendations.</div>' +
+                '<div style="display:inline-flex;gap:12px;">' +
+                '<button class="action-btn" style="background:#3b82f6;margin:0;width:auto;padding:12px 24px;">Download PDF</button>' +
+                '<button class="action-btn" style="background:#334155;margin:0;width:auto;padding:12px 24px;">Email to Angela</button></div></div>'
+            );
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initViewTabs();
+            render();
+        });
+    </script>
+</body>
+</html>
